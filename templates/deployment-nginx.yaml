@@ -1,0 +1,29 @@
+{{- if .Values.nginxTest.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-nginx-deployment
+  namespace: {{ .Values.projectName }}
+  labels:
+    apps: "{{ .Chart.Name }}-nginx"
+spec:
+  replicas: {{ .Values.nginxTest.replicaCount }}
+  selector:
+    matchLabels:
+      apps: "{{ .Chart.Name }}-nginx"
+  template:
+    metadata:
+      labels:
+        apps: "{{ .Chart.Name }}-nginx"
+      {{- with .Values.nginxTest.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+        - name: nginx
+          securityContext:
+            {{- toYaml .Values.nginxTest.securityContext | nindent 12 }}
+          image: {{ template "haproxy-centos.nginxTest.image" . }}
+          imagePullPolicy: {{ .Values.nginxTest.image.pullPolicy | quote }}
+{{- end }}

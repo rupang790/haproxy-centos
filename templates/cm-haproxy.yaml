@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config-configmap
+  namespace: {{ .Values.projectName }}
+  labels:
+    apps: "{{ .Values.workerLocation }}-haproxy"
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+{{- $haGlob := printf "%s%s/*" .Values.haproxyGlob .Values.workerLocation -}}
+{{ tpl (.Files.Glob $haGlob).AsConfig . | nindent 2 }}

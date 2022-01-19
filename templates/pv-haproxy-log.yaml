@@ -1,0 +1,29 @@
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-log-pv
+  labels:
+    apps: "{{ .Values.workerLocation }}-haproxy"      
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  capacity:
+    storage: {{ .Values.persistence.size | quote }}
+  accessModes:
+  - {{ .Values.persistence.accessMode | quote }}
+  claimRef:
+    name: {{ .Release.Name }}-log-pvc
+    namespace: {{ .Values.projectName }}
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.persistentVolumeReclaimPolicy | quote }}
+  {{- if eq .Values.workerLocation "test" }} 
+    {{- with .Values.persistence.pvTest }}
+      {{- toYaml . | nindent 2 }}
+    {{- end }}
+  {{- else if eq .Values.workerLocation "pangyo" }}
+    {{- with .Values.persistence.pvPg }}
+      {{- toYaml . | nindent 2 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

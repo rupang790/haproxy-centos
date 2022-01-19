@@ -1,0 +1,97 @@
+# Default values for haproxy-centos.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# HaProxy Configfile Selection by Location(Site) of Worker
+workerLocation: 'test'
+
+projectName: 'haproxy'
+
+nameOverride: "test"
+
+haproxy:
+  replicaCount: 1
+  image:
+    registry: image-registry.openshift-image-registry.svc:5000/haproxy
+    repository: haproxy
+    tag: "v1.0"
+    pullPolicy: IfNotPresent
+  
+  imagePullSecrets: []
+  
+  # Overrides the name of objects which has default template as 'release-name-chart-name'
+  #  - release-name: set when we install chart by "helm install"
+  #  - chart-name: chart's name which included in Chart.yaml
+  
+  # Multus Annotation Selection with workerLocation
+  multusIPs:
+    test: '[{"name": "haproxy-macvlan-br1","ips" : [ "192.168.6.86/24" ],"default-route": [ "192.168.6.254" ]}]'
+    pangyo: '[{"name": "haproxy-macvlan-br1","ips" : [ "192.168.6.87/24" ],"default-route": [ "192.168.6.254" ]}]'
+  
+  securityContext:
+    privileged: true
+  
+  dnsSettings:
+    dnsTest:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+         - 192.168.6.84
+    dnsPg:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+         - 192.168.6.85
+  
+  resources:
+    limits:
+      cpu: "6000m"
+      memory: "6Gi"
+    requests:
+      cpu: "4000m"
+      memory: "4G"
+  
+  # HaProxy-centos Image Mount Volume
+  # - Do not Change the path #
+  volumeMounts:
+  - mountPath: /tmp/haproxy
+    name: v1
+  - mountPath: /haproxy/log
+    name: v2
+
+# HaProxy Logging PV/PVC Create with NFS
+# - Using Same NFS Server
+# - It is different path by workerLocation
+persistence:
+  enabled: true
+  persistentVolumeReclaimPolicy: Retain
+  accessMode: "ReadWriteMany"
+  size: 20Gi
+  pvTest:
+    nfs:
+      path: /data/nfs/nfs-pv/haproxy-test-logs
+      server: 192.168.6.131
+  pvPg:
+    nfs:
+      path: /data/nfs/nfs-pv/haproxy-pg-logs
+      server: 192.168.6.131
+
+# File Locationfor HaProxy Configurations
+haproxyGlob: 'haproxy/'
+
+# Test Nginx Deploy Creation
+nginxTest:
+  enabled: false
+  replicaCount: 4
+
+  image:
+    registry: docker.io
+    repository: library/nginx
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  securityContext:
+    privileged: true
+
+  podAnnotations:
+    k8s.v1.cni.cncf.io/networks: '[{"name": "nginx-macvlan-br1","default-route": [ "192.168.6.254" ]}]'

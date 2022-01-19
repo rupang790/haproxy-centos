@@ -11,7 +11,9 @@ Network environment, especially IP addresses will be different on each site, so 
 
 ## Configuration
 Additional Network by Multus is not contained on Chart. Because on helm, Network-attachment-definition object is not recognized as resource. So that Network-attachment-definition would be created after deployment, and deployment was not deployed because of no network-attachment-definition resource. (If I am wrong, please comment for it.)
+
 For the test, nginx deployment is included on the chart. It can be enabled when install this chart with `--set` option. If you want to test site-by-site, `nginxTest.podAnnotations` should be modified on `values.yaml`. For now, 4 nginx pods will be deployed once and could reach from each site (So it does not need to deployed twice.)
+
 For now, it can be installed only for 2 different site's configuration as `test` and `pangyo`, but additional sites can be configured with modification of chart.
 It also contains logging of haproxy with `rsyslog` and the logs will be logged on directory `/haproxy/log/` on container which mounting volume is necessary. For that, NFS PV and PVC will be deployed when you install the chart.
 
